@@ -1,6 +1,5 @@
 package com.hankcs.hanlp.summary;
 
-
 import com.hankcs.hanlp.algorithm.MaxHeap;
 import com.hankcs.hanlp.seg.common.Term;
 
@@ -11,8 +10,7 @@ import java.util.*;
  *
  * @author hankcs
  */
-public class TextRankKeyword extends KeywordExtractor
-{
+public class TextRankKeyword extends KeywordExtractor {
     /**
      * 提取多少个关键字
      */
@@ -30,12 +28,13 @@ public class TextRankKeyword extends KeywordExtractor
     /**
      * 提取关键词
      *
-     * @param document 文档内容
-     * @param size     希望提取几个关键词
+     * @param document
+     *            文档内容
+     * @param size
+     *            希望提取几个关键词
      * @return 一个列表
      */
-    public static List<String> getKeywordList(String document, int size)
-    {
+    public static List<String> getKeywordList(String document, int size) {
         TextRankKeyword textRankKeyword = new TextRankKeyword();
         textRankKeyword.nKeyword = size;
 
@@ -48,12 +47,10 @@ public class TextRankKeyword extends KeywordExtractor
      * @param content
      * @return
      */
-    public List<String> getKeyword(String content)
-    {
+    public List<String> getKeyword(String content) {
         Set<Map.Entry<String, Float>> entrySet = getTermAndRank(content, nKeyword).entrySet();
         List<String> result = new ArrayList<String>(entrySet.size());
-        for (Map.Entry<String, Float> entry : entrySet)
-        {
+        for (Map.Entry<String, Float> entry : entrySet) {
             result.add(entry.getKey());
         }
         return result;
@@ -65,8 +62,7 @@ public class TextRankKeyword extends KeywordExtractor
      * @param content
      * @return
      */
-    public Map<String, Float> getTermAndRank(String content)
-    {
+    public Map<String, Float> getTermAndRank(String content) {
         assert content != null;
         List<Term> termList = defaultSegment.seg(content);
         return getRank(termList);
@@ -79,19 +75,16 @@ public class TextRankKeyword extends KeywordExtractor
      * @param size
      * @return
      */
-    public Map<String, Float> getTermAndRank(String content, Integer size)
-    {
+    public Map<String, Float> getTermAndRank(String content, Integer size) {
         Map<String, Float> map = getTermAndRank(content);
         Map<String, Float> result = new LinkedHashMap<String, Float>();
-        for (Map.Entry<String, Float> entry : new MaxHeap<Map.Entry<String, Float>>(size, new Comparator<Map.Entry<String, Float>>()
-        {
-            @Override
-            public int compare(Map.Entry<String, Float> o1, Map.Entry<String, Float> o2)
-            {
-                return o1.getValue().compareTo(o2.getValue());
-            }
-        }).addAll(map.entrySet()).toList())
-        {
+        for (Map.Entry<String, Float> entry : new MaxHeap<Map.Entry<String, Float>>(size,
+                new Comparator<Map.Entry<String, Float>>() {
+                    @Override
+                    public int compare(Map.Entry<String, Float> o1, Map.Entry<String, Float> o2) {
+                        return o1.getValue().compareTo(o2.getValue());
+                    }
+                }).addAll(map.entrySet()).toList()) {
             result.put(entry.getKey(), entry.getValue());
         }
 
@@ -104,78 +97,74 @@ public class TextRankKeyword extends KeywordExtractor
      * @param termList
      * @return
      */
-    public Map<String, Float> getRank(List<Term> termList)
-    {
+    public Map<String, Float> getRank(List<Term> termList) {
+        // 去掉停顿词之后的词
         List<String> wordList = new ArrayList<String>(termList.size());
-        for (Term t : termList)
-        {
-            if (shouldInclude(t))
-            {
+        for (Term t : termList) {
+            if (shouldInclude(t)) {
                 wordList.add(t.word);
             }
         }
-//        System.out.println(wordList);
+        System.out.println(wordList);
         Map<String, Set<String>> words = new TreeMap<String, Set<String>>();
         Queue<String> que = new LinkedList<String>();
-        for (String w : wordList)
-        {
-            if (!words.containsKey(w))
-            {
+        for (String w : wordList) {
+            if (!words.containsKey(w)) {
                 words.put(w, new TreeSet<String>());
             }
             // 复杂度O(n-1)
-            if (que.size() >= 5)
-            {
+            if (que.size() >= 5) {
                 que.poll();
             }
-            for (String qWord : que)
-            {
-                if (w.equals(qWord))
-                {
+            for (String qWord : que) {
+                if (w.equals(qWord)) {
                     continue;
                 }
-                //既然是邻居,那么关系是相互的,遍历一遍即可
+                // 既然是邻居,那么关系是相互的,遍历一遍即可
                 words.get(w).add(qWord);
                 words.get(qWord).add(w);
             }
             que.offer(w);
+            System.out.println(que);
         }
-//        System.out.println(words);
+        System.out.println(words);
         Map<String, Float> score = new HashMap<String, Float>();
-        //依据TF来设置初值
-        for (Map.Entry<String, Set<String>> entry : words.entrySet()){ 
-        	score.put(entry.getKey(),sigMoid(entry.getValue().size()));
-        }        
-        for (int i = 0; i < max_iter; ++i)
-        {
+        // 依据TF来设置初值
+        // <a href="https://github.com/hankcs/HanLP/issues/806">TextRank算法的优化<a>
+        for (Map.Entry<String, Set<String>> entry : words.entrySet()) {
+            score.put(entry.getKey(), sigMoid(entry.getValue().size()));
+        }
+        for (int i = 0; i < max_iter; ++i) {
             Map<String, Float> m = new HashMap<String, Float>();
             float max_diff = 0;
-            for (Map.Entry<String, Set<String>> entry : words.entrySet())
-            {
+            for (Map.Entry<String, Set<String>> entry : words.entrySet()) {
                 String key = entry.getKey();
                 Set<String> value = entry.getValue();
                 m.put(key, 1 - d);
-                for (String element : value)
-                {
+                for (String element : value) {
                     int size = words.get(element).size();
-                    if (key.equals(element) || size == 0) continue;
+                    if (key.equals(element) || size == 0) {
+                        continue;
+                    }
                     m.put(key, m.get(key) + d / size * (score.get(element) == null ? 0 : score.get(element)));
                 }
                 max_diff = Math.max(max_diff, Math.abs(m.get(key) - (score.get(key) == null ? 0 : score.get(key))));
             }
             score = m;
-            if (max_diff <= min_diff) break;
+            if (max_diff <= min_diff)
+                break;
         }
 
         return score;
     }
-    
+
     /**
      * sigmoid函数
+     * 
      * @param value
      * @return
      */
     public static float sigMoid(float value) {
-    	return (float)(1d/(1d+Math.exp(-value)));
-    }    
+        return (float) (1d / (1d + Math.exp(-value)));
+    }
 }
