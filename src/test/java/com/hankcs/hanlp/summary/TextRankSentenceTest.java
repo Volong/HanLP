@@ -6,7 +6,9 @@ package com.hankcs.hanlp.summary;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Scanner;
 
 import org.junit.Test;
 
@@ -54,9 +56,13 @@ public class TextRankSentenceTest
 	
 	@Test
 	public void testRankKeyword() {
-	    String content = "程序员(英文Programmer)是从事程序开发、维护的专业人员。一般将程序员分为程序设计人员和程序编码人员，但两者的界限并不非常清楚，特别是在中国。软件从业人员分为初级程序员、高级程序员、系统分析员和项目经理四大类。";
-	    List<String> keywordList = HanLP.extractKeyword(content, 200);
-	    System.out.println(keywordList);
+//	    String content = "孕晚期肚子疼,孕妇吃西瓜,孕33周早产,4斤,小龙虾,入盆,孕34周早产,早产,胎儿重量,外景孕妇照";
+	    Scanner scanner = new Scanner(new java.io.BufferedInputStream(System.in), "UTF-8");
+	    while (scanner.hasNextLine()) {
+	        String content = scanner.nextLine();
+	        List<String> keywordList = HanLP.extractKeyword(content, 10);
+	        System.out.println(keywordList);
+	    }
 	}
 	
 }

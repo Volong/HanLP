@@ -1,9 +1,22 @@
 package com.hankcs.hanlp.summary;
 
-import com.hankcs.hanlp.algorithm.MaxHeap;
-import com.hankcs.hanlp.seg.common.Term;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-import java.util.*;
+import org.apdplat.word.recognition.StopWord;
+import org.apdplat.word.segmentation.Word;
+import org.apdplat.word.segmentation.impl.MaxNgramScore;
+
+import com.hankcs.hanlp.algorithm.MaxHeap;
 
 /**
  * 基于TextRank算法的关键字提取，适用于单文档
@@ -64,7 +77,9 @@ public class TextRankKeyword extends KeywordExtractor {
      */
     public Map<String, Float> getTermAndRank(String content) {
         assert content != null;
-        List<Term> termList = defaultSegment.seg(content);
+//        List<Term> termList = defaultSegment.seg(content);
+        MaxNgramScore maxNgramScore = new MaxNgramScore();
+        List<Word> termList = maxNgramScore.seg(content);
         return getRank(termList);
     }
 
@@ -97,12 +112,13 @@ public class TextRankKeyword extends KeywordExtractor {
      * @param termList
      * @return
      */
-    public Map<String, Float> getRank(List<Term> termList) {
+    public Map<String, Float> getRank(List<Word> termList) {
         // 去掉停顿词之后的词
         List<String> wordList = new ArrayList<String>(termList.size());
-        for (Term t : termList) {
-            if (shouldInclude(t)) {
-                wordList.add(t.word);
+        for (Word t : termList) {
+//            if (shouldInclude(t)) {
+            if (!StopWord.is(t.getText())) {
+                wordList.add(t.getText());
             }
         }
         System.out.println(wordList);
