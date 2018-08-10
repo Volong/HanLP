@@ -22,12 +22,10 @@ import java.util.List;
  *
  * @author hankcs
  */
-public class DemoNewWordDiscover
-{
-    public static void main(String[] args) throws IOException
-    {
+public class DemoNewWordDiscover {
+    public static void main(String[] args) throws IOException {
         // 文本长度越大越好，试试红楼梦？
-        List<WordInfo> wordInfoList = HanLP.extractWords(IOUtil.newBufferedReader("data/test/红楼梦.txt"), 100);
+        List<WordInfo> wordInfoList = HanLP.extractWords(IOUtil.newBufferedReader("data/test/test02.txt"), 100);
         System.out.println(wordInfoList);
     }
 }
